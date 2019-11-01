@@ -18,6 +18,7 @@ I'm going to show you some theory first and then I'll show you some practical ex
  6.2 [Example 2: WriteProcessMemory](#writeprocessmemory2) <br/>
  6.3 [Example 3: GetThreadContext](#getthreadcontext3) <br/>
 7. [Conclusion](#conclusion)
+8. [Acknowledgments](#acknowledgments)
 
 ## Introduction <a name="introduction"></a>
 
@@ -621,3 +622,7 @@ Done.
 As you have noticed, using native calls in *Frida* complicates a little bit more the code and stuff, specially when you have to deal with native data structures. These were just basic examples but keep in mind that you'll maybe have to work with nested structures at some point and that would surely complicates things even more. 
 
 The good thing is that being able to call native functions from *Frida* is a great feature. You are not limited only to what *Frida* has to offer in a built-in manner, you can go further and use OS native calls and data structures from it which I think is awesome.
+
+## Acknowledgments <a name="acknowledgments"></a>
+
+To [oleavr](https://twitter.com/oleavr) for its awesome framework and being so kind answering always all my questions.
