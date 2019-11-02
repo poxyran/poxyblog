@@ -323,7 +323,6 @@ Usage: frida-write-process-memory.py <process name or PID> <addr> <bytes in the 
 [-] WriteProcessMemory retVal: 1
 [-] WriteProcessMemory wrote 4 bytes from 0x169f0000
 [*] Control-D to terminate....
-[..]
 ```
 
 If we use the previous example to check if the bytes were written, we can see the following output:
