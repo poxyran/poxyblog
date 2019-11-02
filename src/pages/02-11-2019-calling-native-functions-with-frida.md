@@ -22,7 +22,7 @@ I'm going to show you some theory first and then I'll show you some practical ex
 
 ## Introduction <a name="introduction"></a>
 
-As I said at the beginning, some weeks ago I needed to perform a task and Frida was the framework I choose to instrument the program. At some point, I neeed to access OS native data and it was when I discovered the [NativeFunction](https://www.frida.re/docs/javascript-api/#nativefunction) class.
+As I said at the beginning, some weeks ago I needed to perform a task and Frida was the framework I choose to instrument the program. At some point, I needed to access OS native data and it was when I discovered the [NativeFunction](https://www.frida.re/docs/javascript-api/#nativefunction) class.
 
 ## Tools <a name="tools"></a>
 
@@ -32,9 +32,9 @@ As I said at the beginning, some weeks ago I needed to perform a task and Frida 
  
 ## The NativePointer class <a name="nativepointer"></a>
 
-The first thing we need to know is what's a [NativePointer](https://www.frida.re/docs/javascript-api/#nativepointer). This class allows to create an object containing a memory address. Then, we can operate over that memory address and read/write data from/to it, etc.
+The first thing we need to know is what a [NativePointer](https://www.frida.re/docs/javascript-api/#nativepointer) is. This class allows to create an object containing a memory address. Then, we can operate over that memory address and read/write data from/to it, etc.
 
-To create a *NativePointer* is really easy, we just need to call its contructor like this:
+To create a *NativePointer* is really easy, we just need to call its constructor like this:
 
 ```javascript
 var memAddr = new NativePointer('0x100000');
@@ -72,7 +72,7 @@ Here's a quick description of the parameters:
  - **returnType**: represents the return value returned by the function we want to call
  - **argTypes**: represent the arguments of the function we want to call. The supported types are the following: *void, pointer, int, uint, long, ulong, char, uchar, float, double, int8, uint8, int16, uint16, int32, uint32, int64, uint64 and bool*.
 
-The following is a little example on how to use the *NativeFunction* contructor. Suppose that you want to call the [OpenThread](https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-openthread) function, you have to do it in the following way:
+The following is a little example on how to use the *NativeFunction* constructor. Suppose that you want to call the [OpenThread](https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-openthread) function, you have to do it in the following way:
 
 ```javascript
 
@@ -84,7 +84,7 @@ var threadToken = openThreadCall(THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT | TH
 
 The first thing we need to do is to find the address of the function we want to invoke. In this case, I use the *findExportByName* function from the [Module](https://www.frida.re/docs/javascript-api/#module) class in order to get the absolute address of the *OpenThread* function. The first parameter is the name of the module the function belongs to and the second parameter is the name of the function. The returned value is already a *NativePointer*. If no address is found, the returned value is *null*.
 
-The next step is to use the *NativeFunction* contructor in order to create an object containing the address and parameters of the function to invoke. As I already mentioned, the first parameter we have to pass to the constructor is the address of the function to invoke in the form of a *NativePointer*. The second parameter is the *type* of the return value returned by the function. The third parameter is a list containing the types of parameters received by the function. In this case, we have a list of three *uint32* values. If you read the *MSDN* entry for the *OpenThread* function, you'll see that it receives a *DWORD* as first parameter, a *BOOL* as second parameter and another *DWORD* as third parameter. The return value is a *HANDLE* type. However, we don't have those native types in *Frida* nor *Javascript* but, in essence, we can represent them as *unsigned integers*. 
+The next step is to use the *NativeFunction* constructor in order to create an object containing the address and parameters of the function to invoke. As I already mentioned, the first parameter we have to pass to the constructor is the address of the function to invoke in the form of a *NativePointer*. The second parameter is the *type* of the return value returned by the function. The third parameter is a list containing the types of parameters received by the function. In this case, we have a list of three *uint32* values. If you read the *MSDN* entry for the *OpenThread* function, you'll see that it receives a *DWORD* as first parameter, a *BOOL* as second parameter and another *DWORD* as third parameter. The return value is a *HANDLE* type. However, we don't have those native types in *Frida* nor *Javascript* but, in essence, we can represent them as *unsigned integers*. 
 
 Finally, we can use the variable containing the *NativeFunction* object as an actual call to the function. In my case, I've declared some constant values to use for the *dwDesiredAccess* parameter and got the *threadId* parameter from a previous call to the *Process.enumerateThreads* from *Frida*.
 
@@ -110,7 +110,7 @@ typedef struct _IMAGE_FILE_HEADER {
 } IMAGE_FILE_HEADER, *PIMAGE_FILE_HEADER;
 ```
 
-This is how we can do it in *Javascript* using *Frida* and its *NativePointer*:
+This is how we can do it in *Javascript* using *Frida's* *NativePointer*:
 
 ```javascript
 const IMAGE_SIZEOF_FILE_HEADER = 20;
@@ -139,7 +139,7 @@ myFunction(ptr(fileHeaderStruct));
 
 ## Practical examples <a name="examples"></a>
 
-I've prepared three examples in order to demostrate the use of the *NativeFunction*, *NativePointer* and structs in Frida.
+I've prepared three examples in order to demonstrate the use of the *NativeFunction*, *NativePointer* and structs in Frida.
 
 These examples are really basic stuff, there isn't too much more to say about this topic but are a good starting point. 
 
@@ -230,7 +230,7 @@ Usage: frida-read-process-memory.py <process name or PID> <addr> <size>
 [*] Control-D to terminate....
 ```
 
-Despite que debug lines, using native calls in Frida implies a many more lines of code than just using its built-in functions. The same task can be done by just using one or two lines of code:
+Despite the debug lines, using native calls in Frida implies a many more lines of code than just using its built-in functions. The same task can be done by just using one or two lines of code:
 
 ```javascript
 		var buf = Memory.readByteArray(ptr('0x%x'), %d);
@@ -619,7 +619,7 @@ Done.
 
 ## Conclusion <a name="conclusion"></a>
 
-As you have noticed, using native calls in *Frida* complicates a little bit more the code and stuff, specially when you have to deal with native data structures. These were just basic examples but keep in mind that you'll maybe have to work with nested structures at some point and that would surely complicates things even more. 
+As you have noticed, using native calls in *Frida* complicates a little bit more the code and stuff, especially when you have to deal with native data structures. These were just basic examples but keep in mind that you'll maybe have to work with nested structures at some point and that would surely complicates things even more. 
 
 The good thing is that being able to call native functions from *Frida* is a great feature. You are not limited only to what *Frida* has to offer in a built-in manner, you can go further and use OS native calls and data structures from it which I think is awesome.
 
