@@ -143,7 +143,7 @@ I've prepared three examples in order to demonstrate the use of the *NativeFunct
 
 These examples are really basic stuff, there isn't too much more to say about this topic but are a good starting point. 
 
-I'll put only the *Javascript* code and the output of the script once it's executed. The rest of the code can be seen [here](../code/02-11-2019-calling-native-functions-with-frida/).
+I'll put only the *Javascript* code and the output of the script once it's executed. The rest of the code can be seen [here](https://github.com/poxyran/poxyblog/tree/master/src/code/02-11-2019-calling-native-functions-with-frida).
 
 As a target, I just used a simple *notepad.exe* instance.
 
