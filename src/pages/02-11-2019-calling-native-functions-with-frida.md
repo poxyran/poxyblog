@@ -615,6 +615,7 @@ Script output:
 Done.
 [*] Control-D to terminate....
 ```
+One small detail about the *write* methods. The *write* methods return **this** (similar to *self* in Python), which means we can chain calls, e.g: **p.writeU32(1234).add(4).writeU16(4321).add(2).writeUtf8String('test')** (if you want, you can also break across multiple lines for readability).
 
 ## Conclusion <a name="conclusion"></a>
 
