@@ -625,4 +625,4 @@ The good thing is that being able to call native functions from *Frida* is a gre
 
 ## Acknowledgments <a name="acknowledgments"></a>
 
-To [oleavr](https://twitter.com/oleavr) for its awesome framework and being so kind answering always all my questions.
+To [oleavr](https://twitter.com/oleavr) for its awesome framework and being so kind answering always to all my questions.
