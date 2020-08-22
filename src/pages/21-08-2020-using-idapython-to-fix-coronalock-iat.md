@@ -1,4 +1,4 @@
-# Using IDAPython to fix Coronalock (BigLock) IAT in IDA
+# [For beginners] Using IDAPython to fix Coronalock (BigLock) IAT references in IDA
 
 # Table of contents
 
@@ -11,31 +11,31 @@
 
 # Introduction <a name="introduction"></a>
 
-Malware analysts know very well that malware authors use everything in their power to make the analysis of a sample as difficult as possible. They mutate the code, use anti-debugging and anti-virtual machines techniques, use code splicing, IAT ([Import Address Table](https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#import-address-table)) redirection, etc; sometimes is easy to get rid off a given ``protection`` mechanism and sometimes is not, it depends on many factors such as analyst's skills, tools available, if the protection mechanism is publicly known, etc. This time, I want to show you a common technique used by ransomware. In fact, I have come across this technique several times from different ransomwares families that I have analyzed lately.
+Malware analysts know very well that malware authors use everything in their power to make the analysis of a sample as difficult as possible. They mutate the code, use anti-debugging and anti-virtual machines techniques, use code splicing, *IAT* ([Import Address Table](https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#import-address-table)) redirection, etc; sometimes is easy to get rid of a given ``protection`` mechanism and sometimes is not, it depends on many factors such as analyst's skills, tools available, if the protection mechanism is publicly known, etc. This time, I want to show you a common technique used by [ransomware](https://en.wikipedia.org/wiki/Ransomware#:~:text=Ransomware%20is%20a%20type%20of,unless%20a%20ransom%20is%20paid.&text=Starting%20from%20around%202012%20the,first%20six%20months%20of%202018.). In fact, I have come across this technique several times from different ransomware families that I have analyzed lately.
 
-It's very common to see ransomware samples packed with customs or public packers and implementing a runtime IAT loader. Basically, the samples start with a very tiny IAT (some times not even that) and then, during its execution, start to build a much bigger IAT with all the functions needed to work properly. This makes the static analysis of the sample a little bit harder because the IAT is, sometimes, placed outside the PE image. Some other times, they just use direct calls/jumps to API functions making the PE dump to contain bad references.
+It's very common to see ransomware samples packed with customs or public packers and implementing a runtime [IAT loader](http://sandsprite.com/CodeStuff/Understanding_imports.html). Basically, the samples start with a very tiny *IAT* (some times not even that) and then, during its execution, start to build a much bigger *IAT* with all the functions needed to work properly. This makes the static analysis of the sample a little bit harder because the *IAT* is, sometimes, placed outside the *PE* image. Some other times, they just use direct calls/jumps to *API* functions making the *PE* dump to contain bad references.
 
-[Biglock](https://id-ransomware.blogspot.com/2020/05/biglock-ransomware.html) a.k.a Coronalock is not an exception, [the sample I've analyzed](https://www.virustotal.com/gui/file/e2c2a80cb4ecc511f30d72b3487cb9023b40a25f6bbe07a92f47230fb76544f4/detection) has two layers and the last one includes a runtime IAT loader.
+[Biglock](https://id-ransomware.blogspot.com/2020/05/biglock-ransomware.html) a.k.a *Coronalock* is not an exception, [the sample I've analyzed](https://www.virustotal.com/gui/file/e2c2a80cb4ecc511f30d72b3487cb9023b40a25f6bbe07a92f47230fb76544f4/detection) has two layers and the last one includes a runtime *IAT* loader.
 
 # Tools <a name="tools"></a>
 
 - Windows 7 x64
-- OllyDbg + Ollydump
-- IDA + IDAPython
+- [OllyDbg](http://www.ollydbg.de/) + [Ollydump](http://www.openrce.org/downloads/details/108/OllyDump)
+- [IDA](https://www.hex-rays.com/products/ida/support/download_freeware/) + IDAPython
 
 # Unpacking the sample <a name="unpackingthesample"></a>
 
 The unpacking process is really simple. The first time I unpacked the sample, I ended up removing two layers from the original sample. Unfortunately, I didn't write the necessary steps I followed. However, when trying to replicate the work for this tutorial, I found an easier approach that allows to directly jump to the second layer at once without the need of removing any extra layer first.
 
-The sample calls several times to VirtualAlloc in order to create memory regions and place there some encrypted code, decrypt them and then overwrites the image its executing by previously doing a call to VirtualProtect. So, the simple way to unpack it is to place a breakpoint there and trace until the point the code jumps to the OEP.
+The sample calls several times to [VirtualAlloc](https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualalloc) in order to create a few memory regions and place there some encrypted code, decrypt it and then overwrites the image its executing by previously doing a call to [VirtualProtect](https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualprotect). So, the simple way to unpack it is to place a breakpoint there and trace until the point the code jumps to the *OEP* (Original Entry Point).
 
 To make the story short, you'll see that the third time it stops, you'll land in a place like this:
 
 ![](../images/21-08-2020-using-idapython-to-fix-coronalock-iat/VP_stop.PNG)
 
-If you trace the code a little bit you'll see that the only thing it does is to get a pointer to each of the PE sections and call VirtualProtect to restore the original protections that were modified in order to overwrite the original code, no mysterious here.
+If you trace the code a little bit you'll see that the only thing it does is to get a pointer to each of the [PE](https://en.wikipedia.org/wiki/Portable_Executable) sections and call *VirtualProtect* to restore the original protections that were modified in order to overwrite the original code, no mysterious here.
 
-After that, it does a final call to VirtualProtect to mark the PE header as PAGE_EXECUTE_READWRITE and finally jumps to the OEP:
+After that, it does a final call to *VirtualProtect* to mark the *PE* header as ``PAGE_EXECUTE_READWRITE`` and finally jumps to the *OEP*:
 
 ![](../images/21-08-2020-using-idapython-to-fix-coronalock-iat/jump_to_oep.PNG)
 
@@ -47,36 +47,36 @@ The following is a picture of the original ones:
 
 ![](../images/21-08-2020-using-idapython-to-fix-coronalock-iat/orig_strings.PNG)
 
-The only thing you have to do at this point is to use Ollydump, or the dumper of your choice, to dump the memory to a file.
+The only thing you have to do at this point is to use *Ollydump*, or the dumper of your choice, to dump the memory to a file.
 
 # The IAT loader <a name="iatloader"></a>
 
-If you didn't close Ollydbg when you had the sample stopped at the OEP, you'll note that there's an IAT:
+If you didn't close *Ollydbg* when you had the sample stopped at the *OEP*, you'll note that there's an *IAT*:
 
 ![](../images/21-08-2020-using-idapython-to-fix-coronalock-iat/original_iat.PNG)
 
-However, this IAT is the old one. For some reason, Ollydbg didn't refresh it, is still getting the old data from the PE header. If you load the dumped file into Ollydbg and check the .import sections, you'll see nothing in it's new IAT created by Ollydump during the dumping process:
+However, this *IAT* is the old one. For some reason, *Ollydbg* didn't refresh it, is still getting the old data from the *PE* header. If you load the dumped file into *Ollydbg* and check the ``.import`` section, you'll see nothing in it's new *IAT* created by *Ollydump* during the dumping process:
 
 ![](../images/21-08-2020-using-idapython-to-fix-coronalock-iat/dumped_no_iat.PNG)
 
 ![](../images/21-08-2020-using-idapython-to-fix-coronalock-iat/dumped_no_iat_dump.PNG)
 
-This is because, the decrypted code corrupted the .import section on the original file before reaching the OEP. In the following picture, you can see that the IAT data was replaced by code:
+This is because, the decrypted code corrupted the ``.import`` section on the original file before reaching the *OEP*. In the following picture, you can see that the *IAT* data was replaced by code:
 
 ![](../images/21-08-2020-using-idapython-to-fix-coronalock-iat/corrupted_iat.PNG)
 ![](../images/21-08-2020-using-idapython-to-fix-coronalock-iat/corrupted_iat_code.PNG)
 
-If you look at the same section in the original file, you'll see the right IAT:
+If you look at the same section in the original file, you'll see the right *IAT*:
 
 ![](../images/21-08-2020-using-idapython-to-fix-coronalock-iat/the_original_iat.PNG)
 
-It's clear that the ransomware stopped at the OEP will need an new IAT in order to be able to call functions from the Windows API. This is achieved by building a new IAT in runtime.
+It's clear that the ransomware stopped at the *OEP* will need an new *IAT* in order to be able to call functions from the Windows *API*. This is achieved by building a new *IAT* at runtime.
 
-If you look at the string xrefs in IDA, you can see that there are a lot of API names there, some of them are from the Microsoft CryptoAPI, which is very common in ransomware:
+If you look at the string xrefs in *IDA*, you can see that there are a lot of *API* names there, some of them are from the *Microsoft CryptoAPI*, which is very common too see in ransomware:
 
 ![](../images/21-08-2020-using-idapython-to-fix-coronalock-iat/iat_str_xrefs.PNG)
 
-These strings are not directly referenced in the code, so pressing "x" over it is not going to work. However, by examining the code a little bit it can be seen that there are some constructions like this:
+These strings are not directly referenced in the code, so pressing ``x`` over it is not going to work. However, by examining the code a little bit it can be seen that there are some constructions like this one:
 
 ```
 .data:004283B3                 push    eax
@@ -118,13 +118,13 @@ The call to ``dword_475000`` is going here:
 .data:00475040 dword_475040    dd 74F014FAh            ; DATA XREF: sub_41DDB0+113↑r
 ```
 
-This table is the IAT that was dynamically built by the ransomware before reaching the OEP but was dumped ``as is`` by Ollydump. You can check this by looking at it in Ollydbg:
+This table is the *IAT* that was dynamically built by the ransomware before reaching the *OEP* but was dumped ``as is`` by *Ollydump*. You can check this by looking at it in *Ollydbg*:
 
 ![](../images/21-08-2020-using-idapython-to-fix-coronalock-iat/new_iat.PNG)
 
-However, Ollydbg is not able to find references to this addresses, mostly because they are called in a direct way. 
+However, *Ollydbg* is not able to find references to this addresses, mostly because they are called in a direct way. 
 
-If you are curious about where the IAT is built, you just need to put a ``HW`` (hardware) breakpoint ``on-write`` (``DWORD``) at the beginning of the table (``dword_475000``) and trace from there. If you do it, you'll see that the breakpoint hits several times before reaching this point:
+If you are curious about where the *IAT* is built, you just need to put a ``HW`` (hardware) breakpoint [1] ``on-write`` (``DWORD``) at the beginning of the table (``dword_475000``) and trace from there. If you do it, you'll see that the breakpoint hits several times before reaching this point:
 
 ![](../images/21-08-2020-using-idapython-to-fix-coronalock-iat/iat_building.PNG)
 
@@ -134,9 +134,9 @@ You can see the following line:
 004BE371    8907            MOV DWORD PTR DS:[EDI],EAX
 ```
 
-In which the value from ``EAX`` (the address of the CryptExportKey function) was moved to the address pointed by ``EDI`` (``00475000``).
+In which the value from ``EAX`` (the address of the [CryptExportKey](https://docs.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptexportkey) function) was moved to the address pointed by ``EDI`` (``00475000``).
 
-The information to build the IAT (function names) is placed in the .data section and is retrieved by the following code:
+The information to build the *IAT* (function names) is placed in the ``.data`` section and is retrieved by the following code:
 
 ```
 004BE2E2    03DA            ADD EBX,EDX ; get offset in the .data section where function string is
@@ -149,13 +149,13 @@ The information to build the IAT (function names) is placed in the .data section
 004BE2F4    FF95 B10F0000   CALL DWORD PTR SS:[EBP+FB1]                          ; call GetProcAddress
 ```
 
-Here's the picture of the .data section with all the function names:
+Here's the picture of the ``.data`` section with all the function names:
 
 ![](../images/21-08-2020-using-idapython-to-fix-coronalock-iat/function_names.PNG)
 
 # Fixing the IAT <a name="fixingiat"></a>
 
-The right way to do the work, let's say a "conservative" way, if you wish, is to find where the new IAT is built and take notes of the start address and size in order to feed an IAT re-builder such us ImportREC in order to build the new IAT in a new section **before** dumping the process. But let's suppose that we missed that part, what can we do at this point?. Another solution is to use the information we have in Ollydbg to feed an IDAPython script in order to rename the addresses we have in IDA and make the static analysis in IDA a little bit easier. So, I basically wrote the following script in order to fix that:
+The right way to do the work, let's say a "conservative" way, if you wish, is to find where the new *IAT* is built and take notes of the ``start address`` and ``size`` in order to feed an *IAT* re-builder tool such us ImportREC in order to build the new *IAT* in a new section **BEFORE** dumping the process. But let's suppose that we missed that part, what can we do at this point?. Another solution is to use the information we have in *Ollydbg* to feed an *IDAPython* script in order to rename the addresses we have in *IDA* and make the static analysis in *IDA* a little bit easier. So, I basically wrote the following script in order to fix that:
 
 ```python
 import idautils
@@ -195,8 +195,12 @@ Now it's a little bit easier to analyze the code ;P
 
 # Conclusion <a name="conclusion"></a>
 
-In this small post, I showed you the right and wrong way to do the things :P Sometimes you don't have the time to perform an exaustive analysis of a sample and you use a shortcut in order to achieve your goal, that's precisely what I did here. 
+In this small post, I showed you the right and wrong way to do the things :P Sometimes you don't have the time to perform an exhaustive analysis of a sample and you use a shortcut in order to achieve your goal, that's precisely what I did here. 
 
-I showed you an unorthodox way of fixing an IAT (maybe "fixing" is too much, let's say .. mmm .. decorate) in Coronalock in order to have all the function references with names to make the analysis easier.
+I showed you an unorthodox way of fixing an *IAT* (maybe "fixing" is too much, let's say .. mmm .. decorate) in *Coronalock* in order to have all the function references with names to make the analysis easier.
 
 I hope you enjoyed the reading and see you next time!. 
+
+# References
+
+[1] https://processors.wiki.ti.com/index.php/How_Do_Breakpoints_Work
