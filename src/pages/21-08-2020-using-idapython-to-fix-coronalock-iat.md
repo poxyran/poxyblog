@@ -155,7 +155,7 @@ Here's the picture of the ``.data`` section with all the function names:
 
 # Fixing the IAT <a name="fixingiat"></a>
 
-The right way to do the work, let's say a "conservative" way, if you wish, is to find where the new *IAT* is built and take notes of the ``start address`` and ``size`` in order to feed an *IAT* re-builder tool such us ImportREC in order to build the new *IAT* in a new section **BEFORE** dumping the process. But let's suppose that we missed that part, what can we do at this point?. Another solution is to use the information we have in *Ollydbg* to feed an *IDAPython* script in order to rename the addresses we have in *IDA* and make the static analysis in *IDA* a little bit easier. So, I basically wrote the following script in order to fix that:
+The right way to do the work, let's say a "conservative" way, if you wish, is to find where the new *IAT* is built and take notes of the ``start address`` and ``size`` in order to feed an *IAT* re-builder tool such us ImportREC in order to build the new *IAT* in a new section **BEFORE** dumping the process. But let's suppose that we missed that part, what can we do at this point?. Another solution is to use the information we have in *Ollydbg* to feed an *IDAPython* script in order to rename the addresses we have in *IDA* and make the static analysis in *IDA* a little bit easier. So, I basically wrote the [following script](../code/21-08-2020-using-idapython-to-fix-coronalock-iat/fix_iat.py) in order to fix that:
 
 ```python
 import idautils
@@ -184,6 +184,8 @@ if start != BADADDR:
 		start += 4
 		
 ```
+
+The only thing the script does is to traverse the range of addresses we selected and use the ``set_name`` function to rename the reference in *IDA*. Nothing fancy so far.
 
 In order to make the script work, we need to select from the start of the table to the end of it and then run the script with ``ALT+F7``. In this case, the start of the table is ``00475000`` and the end is ``004752A0``.
 
